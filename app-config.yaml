@@ -44,7 +44,6 @@ proxy:
   endpoints:
     "/ephemeral":
       target: "${FIRELINK_EPHEMERAL_API_URL}"
-      credentials: dangerously-allow-unauthenticated
       headers:
         Authorization: "Bearer ${FIRELINK_EPHEMERAL_API_TOKEN}"
       changeOrigin: true
