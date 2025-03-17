@@ -15,7 +15,7 @@ import {
   Content,
   ContentHeader,
 } from '@backstage/core-components';
-import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { useApi, configApiRef, fetchApiRef } from '@backstage/core-plugin-api';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -29,8 +29,9 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 export const FirelinkComponent = () => {
   // Get Backstage objects
   const config = useApi(configApiRef);
+  const fetchApi = useApi(fetchApiRef);
 
-  console.log('config', config);
+
 
   // Constants
   const backendUrl = config.getString('backend.baseUrl');
@@ -64,7 +65,7 @@ export const FirelinkComponent = () => {
   function getEphemeralNamespaces() {
     setNamespacesLoading(true);
     const apiUrl = `${proxyUrl}/api/v1/namespaces`; // Replace with your Kubernetes API server URL
-    fetch(apiUrl)
+    fetchApi.fetch(apiUrl)
       .then(response => {
         if (!response.ok) {
           setNamespacesLoading(false);
@@ -93,7 +94,7 @@ export const FirelinkComponent = () => {
   function getNamespaceReservations() {
     setNamespaceReservationsLoading(true);
     const apiUrl = `${proxyUrl}/apis/cloud.redhat.com/v1alpha1/namespacereservations`;
-    fetch(apiUrl)
+    fetchApi.fetch(apiUrl)
       .then(response => {
         if (!response.ok || !response) {
           throw new Error(
