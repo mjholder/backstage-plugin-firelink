@@ -5,3 +5,4 @@ describe('firelink', () => {
     expect(firelinkPlugin).toBeDefined();
   });
 });
+
