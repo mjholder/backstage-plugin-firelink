@@ -1,4 +1,3 @@
-import React from 'react';
 import { FirelinkComponent } from './FirelinkComponent';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';

@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren } from 'react';
 import { makeStyles } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import ExtensionIcon from '@material-ui/icons/Extension';
@@ -25,8 +25,10 @@ import {
 } from '@backstage/core-components';
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
+import CategoryIcon from '@material-ui/icons/Category';
 import { MyGroupsSidebarItem } from '@backstage/plugin-org';
 import GroupIcon from '@material-ui/icons/People';
+import { NotificationsSidebarItem } from '@backstage/plugin-notifications';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
@@ -75,6 +77,7 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarItem icon={ExtensionIcon} to="api-docs" text="APIs" />
         <SidebarItem icon={LibraryBooks} to="docs" text="Docs" />
         <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
+        <SidebarItem icon={CategoryIcon} to="firelink" text="Firelink" />
         {/* End global nav */}
         <SidebarDivider />
         <SidebarScrollWrapper>
@@ -82,6 +85,8 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         </SidebarScrollWrapper>
       </SidebarGroup>
       <SidebarSpace />
+      <SidebarDivider />
+      <NotificationsSidebarItem />
       <SidebarDivider />
       <SidebarGroup
         label="Settings"

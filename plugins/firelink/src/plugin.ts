@@ -20,3 +20,4 @@ export const FirelinkPage = firelinkPlugin.provide(
     mountPoint: rootRouteRef,
   }),
 );
+

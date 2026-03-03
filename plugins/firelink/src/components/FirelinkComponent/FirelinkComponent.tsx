@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Typography,
   Paper,
   Tooltip,
   Button,
-  Grid,
   CardHeader,
   Card,
   CardContent,
@@ -31,29 +30,27 @@ export const FirelinkComponent = () => {
   const config = useApi(configApiRef);
   const fetchApi = useApi(fetchApiRef);
 
-
-
   // Constants
   const backendUrl = config.getString('backend.baseUrl');
   const proxyUrl = `${backendUrl}/api/proxy/ephemeral`;
   const firelinkUrl = config.getString('app.firelink.firelinkUrl');
   const ephemeralUrl = config.getString('app.firelink.ephemeralUrl');
 
-  const [namespaces, setNamespaces] = useState([]);
-  const [namespaceReservations, setNamespaceReservations] = useState([]);
+  const [namespaces, setNamespaces] = useState<any[]>([]);
+  const [namespaceReservations, setNamespaceReservations] = useState<any>({});
   const [namespacesLoading, setNamespacesLoading] = useState(true);
   const [namespaceReservationsLoading, setNamespaceReservationsLoading] =
     useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
   const [showTokenButton, setShowTokenButton] = useState(true);
   const [tokenURL, setTokenURL] = useState('');
 
-  const TruncatedText = ({ text, max }) => {
+  const TruncatedText = ({ text, max }: { text: string; max: number }) => {
     if (text.length <= max) {
       return <Typography>{text}</Typography>;
     }
 
-    const truncatedText = text.slice(0, max) + '...';
+    const truncatedText = `${text.slice(0, max)}...`;
 
     return (
       <Tooltip title={text}>
@@ -64,8 +61,9 @@ export const FirelinkComponent = () => {
 
   function getEphemeralNamespaces() {
     setNamespacesLoading(true);
-    const apiUrl = `${proxyUrl}/api/v1/namespaces`; // Replace with your Kubernetes API server URL
-    fetchApi.fetch(apiUrl)
+    const apiUrl = `${proxyUrl}/api/v1/namespaces`;
+    fetchApi
+      .fetch(apiUrl)
       .then(response => {
         if (!response.ok) {
           setNamespacesLoading(false);
@@ -76,17 +74,15 @@ export const FirelinkComponent = () => {
       .then(data => {
         // Filter namespaces prefixed with "ephemeral-"
         const ephemeralNamespaces = data.items.filter(
-          namespace =>
+          (namespace: any) =>
             namespace.metadata.name.startsWith('ephemeral-') &&
             !namespace.metadata.name.includes('system'),
         );
         setNamespaces(ephemeralNamespaces);
-        console.log(ephemeralNamespaces);
         setNamespacesLoading(false);
       })
-      .catch(error => {
-        setError(new Error(`Error fetching namespaces: ${error.message}`));
-        console.error('Error:', error);
+      .catch((err: any) => {
+        setError(new Error(`Error fetching namespaces: ${err.message}`));
         setNamespacesLoading(false);
       });
   }
@@ -94,7 +90,8 @@ export const FirelinkComponent = () => {
   function getNamespaceReservations() {
     setNamespaceReservationsLoading(true);
     const apiUrl = `${proxyUrl}/apis/cloud.redhat.com/v1alpha1/namespacereservations`;
-    fetchApi.fetch(apiUrl)
+    fetchApi
+      .fetch(apiUrl)
       .then(response => {
         if (!response.ok || !response) {
           throw new Error(
@@ -107,30 +104,52 @@ export const FirelinkComponent = () => {
         setNamespaceReservations(data);
         setNamespaceReservationsLoading(false);
       })
-      .catch(error => {
-        console.error('Error:', error);
-        setError(new Error(`Error fetching namespaces: ${error.message}`));
+      .catch((err: any) => {
+        setError(new Error(`Error fetching namespaces: ${err.message}`));
         setNamespaceReservationsLoading(false);
       });
   }
+
+  const makeTokenURL = () => {
+    setShowTokenButton(false);
+    // Use a regular expression to capture the parts of the URL
+    const regex = /^https:\/\/console-([^.]+)\.apps\.(.*)$/;
+    const match = ephemeralUrl.match(regex);
+
+    if (match) {
+      const subdomain = match[1];
+      const rest = match[2];
+      // Replace 'console' with 'oauth' in the subdomain part
+      const newSubdomain = subdomain.replace('-console', '');
+      setTokenURL(
+        `https://oauth-${newSubdomain}.apps.${rest}/oauth/token/display`,
+      );
+      setShowTokenButton(true);
+    } else {
+      setShowTokenButton(false);
+    }
+  };
 
   useEffect(() => {
     getEphemeralNamespaces();
     getNamespaceReservations();
     makeTokenURL();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getReservationForNamespace = namespace => {
-    return namespaceReservations.items.find(
-      reservation => reservation.status.namespace === namespace.metadata.name,
+  const getReservationForNamespace = (namespace: any) => {
+    return namespaceReservations.items?.find(
+      (reservation: any) =>
+        reservation.status.namespace === namespace.metadata.name,
     );
   };
 
-  function convertToLocalTime(isoDateString) {
+  function convertToLocalTime(isoDateString: string) {
     const date = new Date(isoDateString);
     return date.toLocaleString();
   }
-  const NamespaceRow = ({ namespace }) => {
+
+  const NamespaceRow = ({ namespace }: { namespace: any }) => {
     if (namespace.status.phase === 'Terminating') {
       return null;
     }
@@ -164,7 +183,7 @@ export const FirelinkComponent = () => {
           )}
         </TableCell>
         <TableCell style={{ flex: 1 }}>
-          {<Typography> {namespace.metadata.labels.pool}</Typography>}
+          <Typography> {namespace.metadata.labels.pool}</Typography>
         </TableCell>
         <TableCell style={{ flex: 1 }}>
           {reserved ? convertToLocalTime(reservation.status.expiration) : ''}
@@ -183,27 +202,6 @@ export const FirelinkComponent = () => {
 
   const reserveNamespace = () => {
     window.open(`${firelinkUrl}/namespace/reserve`, '_blank');
-  };
-
-  const makeTokenURL = () => {
-    setShowTokenButton(false);
-    // Use a regular expression to capture the parts of the URL
-    const regex = /^https:\/\/console-([^\.]+)\.apps\.(.*)$/;
-    const match = ephemeralUrl.match(regex);
-
-    if (match) {
-      const subdomain = match[1];
-      const rest = match[2];
-      // Replace 'console' with 'oauth' in the subdomain part
-      const newSubdomain = subdomain.replace('-console', '');
-      setTokenURL(`https://oauth-${newSubdomain}.apps.${rest}/oauth/token/display`);
-      setShowTokenButton(true);
-    } else {
-      console.log(
-        'Error: makeTokenURL() - Unable to create token URL from ephemeral URL',
-      );
-      setShowTokenButton(false);
-    }
   };
 
   const NamespaceTable = () => {
@@ -245,12 +243,12 @@ export const FirelinkComponent = () => {
     );
   };
 
-  const ErrorCard = ({ error }) => {
+  const ErrorCard = ({ error: err }: { error: Error }) => {
     return (
       <Card variant="outlined">
         <CardHeader title="Error" />
         <CardContent>
-          <Typography color="error">{error.message}</Typography>
+          <Typography color="error">{err.message}</Typography>
         </CardContent>
       </Card>
     );
@@ -279,7 +277,7 @@ export const FirelinkComponent = () => {
 
   return (
     <Page themeId="tool">
-      <Header title="Firelink"></Header>
+      <Header title="Firelink" />
       <Content>
         <ContentHeader title="Ephemeral Namespaces">
           {namespacesLoading || namespaceReservationsLoading ? null : (

@@ -2,7 +2,9 @@
   "extends": "@backstage/cli/config/tsconfig.json",
   "include": [
     "packages/*/src",
+    "packages/*/config.d.ts",
     "plugins/*/src",
+    "plugins/*/config.d.ts",
     "plugins/*/dev",
     "plugins/*/migrations"
   ],
@@ -10,10 +12,10 @@
   "compilerOptions": {
     "outDir": "dist-types",
     "rootDir": ".",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@redhatinsights/backstage-plugin-firelink": ["./plugins/firelink"]
-    },
-    "moduleResolution": "Bundler",
+      "@redhatinsights/backstage-plugin-firelink": ["./plugins/firelink/src"]
+    }
   }
 }
